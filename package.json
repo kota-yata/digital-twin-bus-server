@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "main": "bus.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "TZ=Asia/Tokyo NODE_ENV=prod node server.js",
     "test": "TZ=Asia/Tokyo NODE_ENV=test vitest run"
   },
   "author": "",
