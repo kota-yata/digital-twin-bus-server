@@ -1,0 +1,21 @@
+{
+  "name": "d-twin",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "main": "bus.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "TZ=Asia/Tokyo NODE_ENV=test vitest run"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0",
+    "vitest": "^2.0.5"
+  }
+}
