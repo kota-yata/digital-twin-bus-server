@@ -21,7 +21,8 @@ body{
 .card header{display:flex; align-items:center; justify-content:space-between;}
 .card h2{margin:0; font-size:28px; letter-spacing:.08em;}
 .card h2 small{font-size:14px; color:var(--muted); margin-left:8px; font-weight:600;}
-.badge{background:#535c61; padding:6px 10px; border-radius:999px; color:#dbe7ee; font-size:14px; transition:background-color .2s ease,color .2s ease;}
+.badge{background:#535c61; padding:6px 10px; border-radius:999px; color:#dbe7ee; font-size:14px; transition:background-color .2s ease,color .2s ease; text-decoration:none;}
+.badge:hover{background:#5b646a;}
 .badge.low{background:#2e7d32; color:#e9f6ea;}
 .badge.mid{background:#f1c40f; color:#1b1f22;}
 .badge.high{background:#e74c3c; color:#fff;}
