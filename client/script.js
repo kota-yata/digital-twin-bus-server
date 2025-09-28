@@ -14,7 +14,7 @@ async function fetchJSON(path){
 
 async function loadBus(){
   try{
-    const data = await fetchJSON('http://0.0.0.0:8000/bus');
+    const data = await fetchJSON('https://digital-twin-bus-server.vercel.app/bus');
     const items = Array.isArray(data.items)? data.items: [];
     const a = items[0]?.minutesUntil ?? '--';
     const b = items[1]?.minutesUntil ?? '--';
@@ -28,7 +28,7 @@ async function loadBus(){
 
 async function loadCongestion(){
   try{
-    const data = await fetchJSON('http://0.0.0.0:8000/congestion');
+    const data = await fetchJSON('https://digital-twin-bus-server.vercel.app/congestion');
     const badge = document.getElementById('crowd');
     const lv = String(data.level||'').toLowerCase();
     const jp = { low: '混雑なし', mid: 'やや混雑', high: '混雑' };
@@ -42,7 +42,7 @@ async function loadCongestion(){
 
 async function loadBike(){
   try{
-    const data = await fetchJSON('http://0.0.0.0:8000/bike');
+    const data = await fetchJSON('https://digital-twin-bus-server.vercel.app/bike');
     document.getElementById('bike-avail').textContent = data.total_available ?? '--';
     document.getElementById('bike-return').textContent = data.total_returnable ?? '--';
   }catch(e){
