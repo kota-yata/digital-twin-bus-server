@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>バス時刻表</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="clock">
+        <div id="clock">--:--</div>
+      </section>
+
+      <section class="card">
+        <header>
+          <h2>本館前　湘南台行 <small id="daytype">--</small></h2>
+          <a class="badge" href="./index.html">ホームに戻る</a>
+        </header>
+
+        <div class="meta" style="margin-top:8px; gap:12px;">
+          <span class="legend legend-23">湘23</span>
+          <span class="legend legend-25">湘25</span>
+          <span class="legend legend-28">湘28</span>
+        </div>
+
+        <div id="table" class="timetable"></div>
+      </section>
+    </main>
+
+    <script src="./schedule.js"></script>
+  </body>
+  </html>
+

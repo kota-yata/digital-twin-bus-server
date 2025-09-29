@@ -4,6 +4,7 @@ This server exposes three JSON endpoints over HTTP:
 
 - GET `/bus` — upcoming bus departures across all lines (next 5)
 - GET `/congestion` — current congestion level derived from MQTT object count
+- GET `/timetable` — raw timetable data for all lines
 - GET `/bike` — HELLO CYCLING metrics near SFC and Shonandai
 
 Base URL: `http://localhost:8000`
@@ -125,5 +126,6 @@ Example requests:
 ```
 curl -s http://localhost:8000/bus | jq .
 curl -s http://localhost:8000/congestion | jq .
+curl -s http://localhost:8000/timetable | jq .
 curl -s http://localhost:8000/bike | jq .
 ```

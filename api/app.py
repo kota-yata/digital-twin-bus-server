@@ -423,6 +423,18 @@ def get_bus():
     shaped = [shape_item(now, it, os.environ.get("TZ", "Asia/Tokyo")) for it in items]
     return {"from": now.isoformat(), "count": len(shaped), "items": shaped}
 
+@app.get("/timetable")
+def get_timetable():
+    tz = os.environ.get("TZ", "Asia/Tokyo")
+    now = _now_in_tz(tz)
+    day_type = get_day_type(now)
+    return {
+        "tz": tz,
+        "dayTypeToday": day_type,
+        "lines": list(TIMETABLE.keys()),
+        "timetable": TIMETABLE,
+    }
+
 @app.get("/bike")
 def get_bike():
     try:

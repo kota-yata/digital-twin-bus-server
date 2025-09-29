@@ -42,6 +42,24 @@ body{
 .bike .label, .taxi .label{color:var(--muted); font-weight:700; margin-bottom:8px;}
 .bike .big, .taxi .big{font-size:70px;}
 
+/* Timetable */
+.timetable{display:flex; flex-direction:column; gap:10px; margin-top:16px;}
+.tt-row{display:grid; grid-template-columns: 56px 1fr; align-items:baseline; gap:12px;}
+.tt-hour{font-weight:800; color:#d0d8dd; letter-spacing:.06em;}
+.tt-mins{display:flex; flex-wrap:wrap; gap:10px; align-items:baseline;}
+.ttm{font-weight:800; font-size:20px;}
+.muted{color:var(--muted);}
+
+/* line colors */
+.legend{display:inline-flex; align-items:center; gap:8px;}
+.legend:before{content:''; display:inline-block; width:14px; height:14px; border-radius:3px;}
+.legend-23:before{background:#8f9aa1;} /* 湘23 */
+.legend-25:before{background:#e74c3c;} /* 湘25 */
+.legend-28:before{background:#f1c40f;} /* 湘28 */
+.m-23{color:#c5cdd3;}
+.m-25{color:#ff6b5a;}
+.m-28{color:#ffe07a;}
+
 @media (max-width: 720px){
   #clock{font-size:96px;}
   .card{padding:16px 18px;}
