@@ -9,8 +9,12 @@
   </head>
   <body>
     <main class="wrap">
-      <section class="clock">
-        <div id="clock">--:--</div>
+      <section class="toggle">
+        <button id="dir-toggle" class="seg-toggle" data-dir="go" role="switch" aria-checked="false" aria-label="行き/帰り 切替">
+          <span class="seg-option">行き</span>
+          <span class="seg-option">帰り</span>
+          <span class="seg-thumb" aria-hidden="true"></span>
+        </button>
       </section>
 
       <section class="card bus">
@@ -22,19 +26,34 @@
           </div>
         </header>
         <div class="stop">
-          <div class="stop-name">本館前</div>
-          <div class="meta">
-            <span>先発</span>
-            <span>次発</span>
-          </div>
+          <div class="stop-name">湘南台</div>
           <div class="times">
             <div class="side">
-              <div class="big" id="bus-next-1">--</div>
+              <div class="label-over">先発</div>
+              <div class="big" id="bus-shonan-1">--</div>
               <div class="unit">分後</div>
             </div>
             <div class="divider"></div>
             <div class="side">
-              <div class="big" id="bus-next-2">--</div>
+              <div class="label-over">次発</div>
+              <div class="big" id="bus-shonan-2">--</div>
+              <div class="unit">分後</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stop">
+          <div class="stop-name">辻堂</div>
+          <div class="times">
+            <div class="side">
+              <div class="label-over">先発</div>
+              <div class="big" id="bus-tsuji-1">--</div>
+              <div class="unit">分後</div>
+            </div>
+            <div class="divider"></div>
+            <div class="side">
+              <div class="label-over">次発</div>
+              <div class="big" id="bus-tsuji-2">--</div>
               <div class="unit">分後</div>
             </div>
           </div>
@@ -48,47 +67,65 @@
             HELLO CYCLING ↗
           </a>
         </header>
-        <div class="meta">
-          <span>SFC前 貸出</span>
-          <span>湘南台駅前 返却</span>
-        </div>
         <div class="times">
           <div class="side">
+            <div class="label-over">SFC前 貸出</div>
             <div class="big" id="bike-avail">--</div>
             <div class="unit">台有</div>
           </div>
           <div class="divider"></div>
           <div class="side">
-            <div class="big" id="bike-return">--</div>
+            <div class="label-over">湘南台駅前 返却</div>
+            <div class="big-wrap">
+              <div class="big" id="bike-return">--</div>
+              <div class="small-note" id="bike-return-secondary">+--(駅遠)</div>
+            </div>
             <div class="unit">台空</div>
           </div>
         </div>
       </section>
 
-      <section class="card taxi">
+      <section class="card rideshare">
         <header>
-          <h2>タクシー</h2>
+          <h2>ライドシェア</h2>
         </header>
-        <div class="grid three">
-          <div class="taxi-col">
-            <div class="label">相乗り希望者</div>
-            <div class="big">--</div>
-            <div class="unit">人</div>
+        <div class="stop">
+          <div class="stop-name" id="rs-col1-label">湘南台</div>
+          <div class="times">
+            <div class="side">
+              <div class="label-over">台数</div>
+              <div class="big" id="rs-col1-veh">--</div>
+              <div class="unit">台</div>
+            </div>
+            <div class="divider"></div>
+            <div class="side">
+              <div class="label-over">目安待機時間</div>
+              <div class="big" id="rs-col1-min">--</div>
+              <div class="unit">分</div>
+            </div>
           </div>
-          <div class="taxi-col">
-            <div class="label">目安待機時間</div>
-            <div class="big">--</div>
-            <div class="unit">分</div>
-          </div>
-          <div class="taxi-col">
-            <div class="label">目安所要費用</div>
-            <div class="big">--</div>
-            <div class="unit">円/人</div>
+        </div>
+
+        <div class="stop">
+          <div class="stop-name" id="rs-col2-label">辻堂</div>
+          <div class="times">
+            <div class="side">
+              <div class="label-over">台数</div>
+              <div class="big" id="rs-col2-veh">--</div>
+              <div class="unit">台</div>
+            </div>
+            <div class="divider"></div>
+            <div class="side">
+              <div class="label-over">目安待機時間</div>
+              <div class="big" id="rs-col2-min">--</div>
+              <div class="unit">分</div>
+            </div>
           </div>
         </div>
       </section>
     </main>
 
+    <script src="./shared/toggle.js"></script>
     <script src="./script.js"></script>
   </body>
   </html>

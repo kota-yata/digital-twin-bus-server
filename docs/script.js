@@ -1,11 +1,5 @@
 function pad(n){return String(n).padStart(2,'0')}
 
-function updateClock(){
-  const d = new Date();
-  const s = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  document.getElementById('clock').textContent = s;
-}
-
 async function fetchJSON(path){
   const res = await fetch(path, {cache:'no-store'});
   if(!res.ok) throw new Error(`${path} ${res.status}`);
@@ -16,13 +10,22 @@ async function loadBus(){
   try{
     const data = await fetchJSON('https://digital-twin-bus-server.vercel.app/bus');
     const items = Array.isArray(data.items)? data.items: [];
-    const a = items[0]?.minutesUntil ?? '--';
-    const b = items[1]?.minutesUntil ?? '--';
-    document.getElementById('bus-next-1').textContent = a;
-    document.getElementById('bus-next-2').textContent = b;
+    const shonan = [];
+    const tsuji = [];
+    for(const it of items){
+      const line = String(it.line||'');
+      if(line.startsWith('湘')) shonan.push(it.minutesUntil);
+      if(line.startsWith('辻')) tsuji.push(it.minutesUntil);
+    }
+    document.getElementById('bus-shonan-1').textContent = (shonan[0] ?? '--');
+    document.getElementById('bus-shonan-2').textContent = (shonan[1] ?? '--');
+    document.getElementById('bus-tsuji-1').textContent = (tsuji[0] ?? '--');
+    document.getElementById('bus-tsuji-2').textContent = (tsuji[1] ?? '--');
   }catch(e){
-    document.getElementById('bus-next-1').textContent = '--';
-    document.getElementById('bus-next-2').textContent = '--';
+    document.getElementById('bus-shonan-1').textContent = '--';
+    document.getElementById('bus-shonan-2').textContent = '--';
+    document.getElementById('bus-tsuji-1').textContent = '--';
+    document.getElementById('bus-tsuji-2').textContent = '--';
   }
 }
 
@@ -45,21 +48,72 @@ async function loadBike(){
     const data = await fetchJSON('https://digital-twin-bus-server.vercel.app/bike');
     document.getElementById('bike-avail').textContent = data.total_available ?? '--';
     document.getElementById('bike-return').textContent = data.total_returnable ?? '--';
+    const el = document.getElementById('bike-return-secondary');
+    if(el){
+      if(typeof data.returnable_secondary === 'number'){
+        el.textContent = `+${data.returnable_secondary}(駅遠)`;
+      }else{
+        el.textContent = '+--(駅遠)';
+      }
+    }
   }catch(e){
     document.getElementById('bike-avail').textContent = '--';
     document.getElementById('bike-return').textContent = '--';
+    const el = document.getElementById('bike-return-secondary');
+    if(el) el.textContent = '+--(駅遠)';
   }
 }
 
-function tick(){
-  updateClock();
+async function loadRideshare(){
+  try{
+    const data = await fetchJSON('https://digital-twin-bus-server.vercel.app/rideshare');
+    const dir = (window.DirectionToggle ? window.DirectionToggle.getDirection() : 'go');
+    let aLabel = '湘南台', bLabel = '辻堂';
+    let a = null, b = null;
+    if(dir === 'go'){
+      a = data?.toSchool?.fromSyonandai || {};
+      b = data?.toSchool?.fromTsujido || {};
+      aLabel = '湘南台から';
+      bLabel = '辻堂から';
+    }else{
+      a = data?.fromSchool?.toSyonandai || {};
+      b = data?.fromSchool?.toTsujido || {};
+      aLabel = '湘南台まで';
+      bLabel = '辻堂まで';
+    }
+    document.getElementById('rs-col1-label').textContent = aLabel;
+    document.getElementById('rs-col2-label').textContent = bLabel;
+    document.getElementById('rs-col1-veh').textContent = (a.vehicles ?? '--');
+    document.getElementById('rs-col1-min').textContent = (a.untilEarliestMin ?? '--');
+    document.getElementById('rs-col2-veh').textContent = (b.vehicles ?? '--');
+    document.getElementById('rs-col2-min').textContent = (b.untilEarliestMin ?? '--');
+  }catch(e){
+    const dir = (window.DirectionToggle ? window.DirectionToggle.getDirection() : 'go');
+    document.getElementById('rs-col1-label').textContent = (dir === 'go' ? '湘南台から' : '湘南台まで');
+    document.getElementById('rs-col2-label').textContent = (dir === 'go' ? '辻堂から' : '辻堂まで');
+    document.getElementById('rs-col1-veh').textContent = '--';
+    document.getElementById('rs-col1-min').textContent = '--';
+    document.getElementById('rs-col2-veh').textContent = '--';
+    document.getElementById('rs-col2-min').textContent = '--';
+  }
+}
+
+// Direction toggle (shared)
+function initToggle(){
+  const btn = document.getElementById('dir-toggle');
+  if(btn && window.DirectionToggle){
+    window.DirectionToggle.attach(btn);
+    window.DirectionToggle.onChange(()=>{
+      // If future logic depends on direction, refresh data
+      refresh();
+    });
+  }
 }
 
 async function refresh(){
-  await Promise.all([loadBus(), loadCongestion(), loadBike()]);
+  await Promise.all([loadBus(), loadCongestion(), loadBike(), loadRideshare()]);
 }
 
-setInterval(tick, 1000);
 setInterval(refresh, 30000);
-tick();
+initToggle();
 refresh();

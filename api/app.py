@@ -170,6 +170,7 @@ def connect_and_subscribe():
 
 TIMETABLE = {
     "湘23": {
+        "description": "各駅停車",
         "weekday": {
             14: [39, 59],
             15: [8, 50, 56],
@@ -192,6 +193,7 @@ TIMETABLE = {
         "holiday": {},
     },
     "湘25": {
+        "description": "ツインライナー",
         "weekday": {
             14: [29, 49],
             15: [16, 24, 31, 38, 45],
@@ -212,9 +214,45 @@ TIMETABLE = {
         "holiday": {},
     },
     "湘28": {
+        "description": "直行",
         "weekday": {
             15: [28, 34],
             18: [11, 42],
+        },
+        "saturday": {},
+        "holiday": {},
+    },
+    "辻34": {
+        "description": "各駅停車",
+        "weekday": {
+            15: [19],
+            16: [3, 45, 55],
+            17: [5, 25, 45],
+            18: [25],
+            19: [50],
+            20: [13],
+            21: [13],
+        },
+        "saturday": {
+            12: [37, 57],
+            13: [17, 37, 57],
+            14: [17, 37],
+            15: [17, 37],
+            16: [17, 37],
+            17: [17, 37],
+            18: [17, 37],
+            19: [36],
+        },
+        "holiday": {},
+    },
+    "辻35": {
+        "description": "ツインライナー",
+        "weekday": {
+            15: [43, 58],
+            16: [14, 31],
+            17: [15, 35, 55],
+            18: [5, 54],
+            19: [24],
         },
         "saturday": {},
         "holiday": {},
@@ -345,16 +383,7 @@ def compute_bike_metrics() -> dict:
 
     # Env vars
     # Primary names expected by user
-    sfc_station_id = (os.getenv("SFC_STATION_ID") or "").strip()
-    shonandai_primary_env = (os.getenv("SHONANDAI_PRIMARY_STATION_IDS") or "").strip()
-    shonandai_secondary_env = (os.getenv("SHONANDAI_SECONDARY_STATION_IDS") or "").strip()
-    # Backward/alternate names for compatibility
-    if not sfc_station_id:
-        sfc_station_id = (os.getenv("HELLO_SFC_STATION_ID") or "").strip()
-    if not shonandai_primary_env:
-        shonandai_primary_env = (os.getenv("SHONANDAI_STATION_IDS_PRIMARY") or os.getenv("HELLO_SHONANDAI_STATION_IDS") or "").strip()
-    if not shonandai_secondary_env:
-        shonandai_secondary_env = (os.getenv("SHONANDAI_STATION_IDS_SECONDARY") or "").strip()
+    sfc_station_id = SFC_STATION_ID
 
     def parse_ids(raw: str) -> list[str]:
         return [sid.strip() for sid in raw.split(",") if sid.strip()]
@@ -377,8 +406,8 @@ def compute_bike_metrics() -> dict:
         total_available = 0
 
     # total_returnable: use prioritized Shonandai lists if provided
-    primary_ids = parse_ids(shonandai_primary_env) if shonandai_primary_env else []
-    secondary_ids = parse_ids(shonandai_secondary_env) if shonandai_secondary_env else []
+    primary_ids = SHONANDAI_TIER1_STATION_IDS
+    secondary_ids = SHONANDAI_TIER2_STATION_IDS
 
     total_returnable_primary = sum(returnable_for(sid) for sid in primary_ids)
     total_returnable_secondary = sum(returnable_for(sid) for sid in secondary_ids)
@@ -395,6 +424,8 @@ def compute_bike_metrics() -> dict:
     return {
         "total_available": int(total_available),
         "total_returnable": int(total_returnable),
+        "returnable_primary": int(total_returnable_primary),
+        "returnable_secondary": int(total_returnable_secondary),
     }
 
 
