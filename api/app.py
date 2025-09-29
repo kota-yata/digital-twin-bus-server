@@ -437,9 +437,18 @@ def get_timetable():
 
 @app.get("/bike")
 def get_bike():
+    global _bike_cache, _bike_cache_ts
+    now = time.time()
+    if _bike_cache is not None and (now - _bike_cache_ts) < 60:
+        return _bike_cache
     try:
-        return compute_bike_metrics()
+        data = compute_bike_metrics()
+        _bike_cache = data
+        _bike_cache_ts = now
+        return data
     except Exception as e:
+        if _bike_cache is not None:
+            return _bike_cache
         raise HTTPException(status_code=502, detail=str(e))
 
 
@@ -457,6 +466,8 @@ def subscriber_loop():
         backoff_time = min(backoff_time * 2, 600)
 
 latest_object_count = 0
+_bike_cache: dict | None = None
+_bike_cache_ts: float = 0.0
 
 
 @app.on_event("startup")
