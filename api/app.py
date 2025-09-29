@@ -7,7 +7,14 @@ import uvicorn
 from bus_data import TIMETABLE
 from bus import now_in_tz, get_day_type, next_across_all, shape_item
 from bike import compute_bike_metrics, compute_bike_metrics_directional
-from mqtt_subscriber import start_subscriber, get_latest_object_count
+try:
+    from mqtt_subscriber import start_subscriber, get_latest_object_count
+except Exception:
+    def start_subscriber() -> None:  # type: ignore
+        return None
+
+    def get_latest_object_count() -> int:  # type: ignore
+        return 0
 
 
 def _classify_level(count: int) -> str:
@@ -89,9 +96,9 @@ def get_bike_direction():
         raise HTTPException(status_code=502, detail=str(e))
 
 
-_bike_cache: dict | None = None
+_bike_cache = None  # type: ignore[var-annotated]
 _bike_cache_ts: float = 0.0
-_bike2_cache: dict | None = None
+_bike2_cache = None  # type: ignore[var-annotated]
 _bike2_cache_ts: float = 0.0
 
 
@@ -102,4 +109,3 @@ def _startup():
 
 if __name__ == '__main__':
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)
-

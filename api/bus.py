@@ -1,13 +1,13 @@
 from datetime import datetime, timedelta
 import os
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 try:
     from zoneinfo import ZoneInfo
 except Exception:
     ZoneInfo = None
 
-from .bus_data import TIMETABLE
+from bus_data import TIMETABLE
 
 
 def now_in_tz(tz_name: str) -> datetime:
@@ -42,7 +42,7 @@ def _expand_day_departures(line_name: str, day_start: datetime, day_type: str) -
     return out
 
 
-def next_buses(line_name: str, from_date: datetime | None = None, count: int = 5) -> List[Dict]:
+def next_buses(line_name: str, from_date: Optional[datetime] = None, count: int = 5) -> List[Dict]:
     if line_name not in TIMETABLE:
         raise KeyError(f"未知の系統: {line_name}")
     if from_date is None:
@@ -65,7 +65,7 @@ def next_buses(line_name: str, from_date: datetime | None = None, count: int = 5
     return results
 
 
-def next_across_all(from_date: datetime | None = None, count: int = 5) -> List[Dict]:
+def next_across_all(from_date: Optional[datetime] = None, count: int = 5) -> List[Dict]:
     lines = list(TIMETABLE.keys())
     if from_date is None:
         from_date = now_in_tz(os.environ.get("TZ", "Asia/Tokyo"))
@@ -113,4 +113,3 @@ def shape_item(now: datetime, item: Dict, tz_name: str = "Asia/Tokyo") -> Dict:
         "time": time_str,
         "minutesUntil": minutes_until,
     }
-
