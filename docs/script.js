@@ -98,7 +98,7 @@ async function loadBike(){
 
 async function loadRideshare(){
   try{
-    const data = await AppUtil.fetchAPI('/rideshare', AppUtil.BASE.rideshare);
+    const data = await AppUtil.fetchAPI('/rideshare', AppUtil.BASE.rideshareApi);
     const dir = AppUtil.direction();
     let aLabel = '湘南台', bLabel = '辻堂';
     let a = null, b = null;
@@ -110,8 +110,8 @@ async function loadRideshare(){
     }else{
       a = data?.fromSchool?.toSyonandai || {};
       b = data?.fromSchool?.toTsujido || {};
-      aLabel = '湘南台まで';
-      bLabel = '辻堂まで';
+      aLabel = '湘南台行き';
+      bLabel = '辻堂行き';
     }
     AppUtil.setText('rs-col1-label', aLabel);
     AppUtil.setText('rs-col2-label', bLabel);
@@ -121,8 +121,8 @@ async function loadRideshare(){
     AppUtil.setText('rs-col2-min', b.untilEarliestMin);
   }catch(e){
     const dir = AppUtil.direction();
-    AppUtil.setText('rs-col1-label', (dir === 'go' ? '湘南台から' : '湘南台まで'));
-    AppUtil.setText('rs-col2-label', (dir === 'go' ? '辻堂から' : '辻堂まで'));
+    AppUtil.setText('rs-col1-label', (dir === 'go' ? '湘南台から' : '湘南台行き'));
+    AppUtil.setText('rs-col2-label', (dir === 'go' ? '辻堂から' : '辻堂行き'));
     AppUtil.setText('rs-col1-veh', '--');
     AppUtil.setText('rs-col1-min', '--');
     AppUtil.setText('rs-col2-veh', '--');
@@ -163,5 +163,10 @@ async function refresh(){
 
 setInterval(refresh, 30000);
 initToggle();
+// set external rideshare link from constant
+(function(){
+  const a = document.getElementById('rs-link');
+  if(a && window.AppUtil){ a.href = AppUtil.BASE.rideshareApp; }
+})();
 updateBusTitles();
 refresh();
