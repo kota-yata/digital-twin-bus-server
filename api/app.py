@@ -291,7 +291,6 @@ def _expand_day_departures(line_name: str, day_start: datetime, day_type: str) -
     out.sort()
     return out
 
-
 def next_buses(line_name: str, from_date: datetime | None = None, count: int = 5) -> list[dict]:
     if line_name not in TIMETABLE:
         raise KeyError(f"未知の系統: {line_name}")

@@ -7,20 +7,38 @@ async function fetchJSON(path){
 }
 
 async function loadBus(){
-  try{
-    const data = await fetchJSON('https://digital-twin-bus-server.vercel.app/bus');
-    const items = Array.isArray(data.items)? data.items: [];
-    const shonan = [];
-    const tsuji = [];
-    for(const it of items){
-      const line = String(it.line||'');
-      if(line.startsWith('湘')) shonan.push(it.minutesUntil);
-      if(line.startsWith('辻')) tsuji.push(it.minutesUntil);
+  function nextTwoFromTimetable(data, groupPrefix){
+    const tt = data?.timetable || {};
+    const day = data?.dayTypeToday || 'weekday';
+    const now = new Date();
+    const nowMin = now.getHours()*60 + now.getMinutes();
+    const mins = [];
+    for(const line of Object.keys(tt)){
+      if(!line.startsWith(groupPrefix)) continue;
+      const dayTbl = tt[line]?.[day] || {};
+      for(const hStr of Object.keys(dayTbl)){
+        const h = Number(hStr);
+        const arr = Array.isArray(dayTbl[h]) ? dayTbl[h] : [];
+        for(const m of arr){
+          const t = h*60 + Number(m);
+          let delta = t - nowMin;
+          if(delta < 0) delta += 24*60; // wrap to next day if needed
+          mins.push(delta);
+        }
+      }
     }
-    document.getElementById('bus-shonan-1').textContent = (shonan[0] ?? '--');
-    document.getElementById('bus-shonan-2').textContent = (shonan[1] ?? '--');
-    document.getElementById('bus-tsuji-1').textContent = (tsuji[0] ?? '--');
-    document.getElementById('bus-tsuji-2').textContent = (tsuji[1] ?? '--');
+    mins.sort((a,b)=>a-b);
+    return [mins[0] ?? '--', mins[1] ?? '--'];
+  }
+
+  try{
+    const data = await fetchJSON('https://digital-twin-bus-server.vercel.app/timetable');
+    const [s1,s2] = nextTwoFromTimetable(data, '湘');
+    const [t1,t2] = nextTwoFromTimetable(data, '辻');
+    document.getElementById('bus-shonan-1').textContent = s1;
+    document.getElementById('bus-shonan-2').textContent = s2;
+    document.getElementById('bus-tsuji-1').textContent = t1;
+    document.getElementById('bus-tsuji-2').textContent = t2;
   }catch(e){
     document.getElementById('bus-shonan-1').textContent = '--';
     document.getElementById('bus-shonan-2').textContent = '--';
