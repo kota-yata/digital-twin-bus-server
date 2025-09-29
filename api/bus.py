@@ -7,9 +7,6 @@ try:
 except Exception:
     ZoneInfo = None
 
-from bus_data import TIMETABLE
-
-
 def now_in_tz(tz_name: str) -> datetime:
     if ZoneInfo is None:
         return datetime.utcnow()
@@ -28,8 +25,8 @@ def get_day_type(d: datetime) -> str:
     return "weekday"
 
 
-def _expand_day_departures(line_name: str, day_start: datetime, day_type: str) -> List[datetime]:
-    table = (TIMETABLE.get(line_name, {}).get(day_type)) or {}
+def _expand_day_departures(timetable: Dict, line_name: str, day_start: datetime, day_type: str) -> List[datetime]:
+    table = (timetable.get(line_name, {}).get(day_type)) or {}
     out: List[datetime] = []
     for h in range(0, 25):
         mins = table.get(h)
@@ -42,8 +39,8 @@ def _expand_day_departures(line_name: str, day_start: datetime, day_type: str) -
     return out
 
 
-def next_buses(line_name: str, from_date: Optional[datetime] = None, count: int = 5) -> List[Dict]:
-    if line_name not in TIMETABLE:
+def next_buses(timetable: Dict, line_name: str, from_date: Optional[datetime] = None, count: int = 5) -> List[Dict]:
+    if line_name not in timetable:
         raise KeyError(f"未知の系統: {line_name}")
     if from_date is None:
         from_date = now_in_tz(os.environ.get("TZ", "Asia/Tokyo"))
@@ -55,7 +52,7 @@ def next_buses(line_name: str, from_date: Optional[datetime] = None, count: int 
             break
         day_start = probe.replace(hour=0, minute=0, second=0, microsecond=0)
         day_type = get_day_type(probe)
-        deps = _expand_day_departures(line_name, day_start, day_type)
+        deps = _expand_day_departures(timetable, line_name, day_start, day_type)
         filtered = [dt for dt in deps if (day_offset > 0 or dt >= from_date)]
         for dt in filtered:
             results.append({"line": line_name, "dayType": day_type, "datetime": dt})
@@ -65,8 +62,8 @@ def next_buses(line_name: str, from_date: Optional[datetime] = None, count: int 
     return results
 
 
-def next_across_all(from_date: Optional[datetime] = None, count: int = 5) -> List[Dict]:
-    lines = list(TIMETABLE.keys())
+def next_across_all(timetable: Dict, from_date: Optional[datetime] = None, count: int = 5) -> List[Dict]:
+    lines = list(timetable.keys())
     if from_date is None:
         from_date = now_in_tz(os.environ.get("TZ", "Asia/Tokyo"))
     bucket: List[Dict] = []
@@ -77,7 +74,7 @@ def next_across_all(from_date: Optional[datetime] = None, count: int = 5) -> Lis
         day_start = probe.replace(hour=0, minute=0, second=0, microsecond=0)
         for line in lines:
             day_type = get_day_type(probe)
-            deps = _expand_day_departures(line, day_start, day_type)
+            deps = _expand_day_departures(timetable, line, day_start, day_type)
             filtered = [dt for dt in deps if (day_offset > 0 or dt >= from_date)]
             for dt in filtered:
                 bucket.append({"line": line, "dayType": day_type, "datetime": dt})

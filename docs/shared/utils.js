@@ -23,8 +23,8 @@
   }
 
   const BASE = {
-    api: 'https://digital-twin-bus-server.vercel.app',
-    // api: 'http://localhost:3000',
+    // api: 'https://digital-twin-bus-server.vercel.app',
+    api: 'http://localhost:3000',
     rideshare: 'https://kawaemon.com',
   };
 

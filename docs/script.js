@@ -1,14 +1,14 @@
 function pad(n){return String(n).padStart(2,'0')}
 
 async function loadBus(){
-  function nextTwoFromTimetable(data, groupPrefix){
+  function nextTwoFromTimetable(data, groupMarker){
     const tt = data?.timetable || {};
     const day = data?.dayTypeToday || 'weekday';
     const now = new Date();
     const nowMin = now.getHours()*60 + now.getMinutes();
     const mins = [];
     for(const line of Object.keys(tt)){
-      if(!line.startsWith(groupPrefix)) continue;
+      if(!line.includes(groupMarker)) continue;
       const dayTbl = tt[line]?.[day] || {};
       for(const hStr of Object.keys(dayTbl)){
         const h = Number(hStr);
@@ -26,7 +26,9 @@ async function loadBus(){
   }
 
   try{
-    const data = await AppUtil.fetchAPI('/timetable', AppUtil.BASE.api);
+    const dir = AppUtil.direction();
+    const endpoint = (dir === 'go') ? '/timetable/to-school' : '/timetable/from-school';
+    const data = await AppUtil.fetchAPI(endpoint, AppUtil.BASE.api);
     const [s1,s2] = nextTwoFromTimetable(data, '湘');
     const [t1,t2] = nextTwoFromTimetable(data, '辻');
     AppUtil.setText('bus-shonan-1', s1);
@@ -134,9 +136,24 @@ function initToggle(){
   if(btn && window.DirectionToggle){
     window.DirectionToggle.attach(btn);
     window.DirectionToggle.onChange(()=>{
+      updateBusTitles();
       // If future logic depends on direction, refresh data
       refresh();
     });
+  }
+}
+
+function updateBusTitles(){
+  const dir = AppUtil.direction();
+  const s = document.getElementById('bus-title-shonan');
+  const t = document.getElementById('bus-title-tsuji');
+  if(!s || !t) return;
+  if(dir === 'go'){
+    s.textContent = '湘南台から';
+    t.textContent = '辻堂から';
+  }else{
+    s.textContent = '湘南台行き';
+    t.textContent = '辻堂行き';
   }
 }
 
@@ -146,4 +163,5 @@ async function refresh(){
 
 setInterval(refresh, 30000);
 initToggle();
+updateBusTitles();
 refresh();

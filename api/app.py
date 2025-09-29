@@ -4,7 +4,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from bus_data import TIMETABLE
+from bus_data import TIMETABLE_FROM_SCHOOL, TIMETABLE_TO_SCHOOL
 from bus import now_in_tz, get_day_type, next_across_all, shape_item
 from bike import compute_bike_metrics, compute_bike_metrics_directional
 try:
@@ -40,27 +40,29 @@ def get_congestion():
     level = _classify_level(count)
     return {"count": count, "level": level}
 
-
-@app.get("/bus")
-def get_bus():
-    now = now_in_tz(os.environ.get("TZ", "Asia/Tokyo"))
-    items = next_across_all(now, 5)
-    shaped = [shape_item(now, it, os.environ.get("TZ", "Asia/Tokyo")) for it in items]
-    return {"from": now.isoformat(), "count": len(shaped), "items": shaped}
-
-
-@app.get("/timetable")
-def get_timetable():
+@app.get("/timetable/from-school")
+def get_timetable_from_school():
     tz = os.environ.get("TZ", "Asia/Tokyo")
     now = now_in_tz(tz)
     day_type = get_day_type(now)
     return {
         "tz": tz,
         "dayTypeToday": day_type,
-        "lines": list(TIMETABLE.keys()),
-        "timetable": TIMETABLE,
+        "lines": list(TIMETABLE_FROM_SCHOOL.keys()),
+        "timetable": TIMETABLE_FROM_SCHOOL,
     }
 
+@app.get("/timetable/to-school")
+def get_timetable_to_school():
+    tz = os.environ.get("TZ", "Asia/Tokyo")
+    now = now_in_tz(tz)
+    day_type = get_day_type(now)
+    return {
+        "tz": tz,
+        "dayTypeToday": day_type,
+        "lines": list(TIMETABLE_TO_SCHOOL.keys()),
+        "timetable": TIMETABLE_TO_SCHOOL,
+    }
 
 @app.get("/bike")
 def get_bike():

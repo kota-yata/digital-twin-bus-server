@@ -5,7 +5,7 @@
   --muted:#a8b3b9;
   --accent:#9fd3f6;
 }
-html,body{height:100%;}
+html,body{min-height:100%;}
 body{
   margin:0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
@@ -66,17 +66,22 @@ body{
 .legend-23:before{background:#8f9aa1;} /* 湘23 */
 .legend-25:before{background:#e74c3c;} /* 湘25 */
 .legend-28:before{background:#f1c40f;} /* 湘28 */
+.legend-24:before{background:#2ecc71;} /* 湘24 */
 .m-23{color:#c5cdd3;}
 .m-25{color:#ff6b5a;}
 .m-28{color:#ffe07a;}
+.m-24{color:#b8f0c9;}
 /* 辻 lines */
 .legend-t34:before{background:#3498db;} /* 辻34 */
 .legend-t35:before{background:#9b59b6;} /* 辻35 */
 .m-t34{color:#8ec9f3;}
 .m-t35{color:#d1a7e6;}
+/* fallback */
+.legend-other:before{background:#95a5a6;} /* default gray */
+.m-other{color:#cfd8dc;}
 
 @media (max-width: 720px){
-  .card{padding:16px 18px;}
+  .card{padding:25px 18px;}
   .big{font-size:70px;}
   .bike .big, .taxi .big{font-size:64px;}
 }
