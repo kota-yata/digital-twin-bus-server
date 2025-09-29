@@ -1,11 +1,5 @@
 function pad(n){return String(n).padStart(2,'0')}
 
-async function fetchJSON(path){
-  const res = await fetch(path, {cache:'no-store'});
-  if(!res.ok) throw new Error(`${path} ${res.status}`);
-  return res.json();
-}
-
 async function loadBus(){
   function nextTwoFromTimetable(data, groupPrefix){
     const tt = data?.timetable || {};
@@ -32,24 +26,24 @@ async function loadBus(){
   }
 
   try{
-    const data = await fetchJSON('https://digital-twin-bus-server.vercel.app/timetable');
+    const data = await AppUtil.fetchAPI('/timetable', AppUtil.BASE.api);
     const [s1,s2] = nextTwoFromTimetable(data, '湘');
     const [t1,t2] = nextTwoFromTimetable(data, '辻');
-    document.getElementById('bus-shonan-1').textContent = s1;
-    document.getElementById('bus-shonan-2').textContent = s2;
-    document.getElementById('bus-tsuji-1').textContent = t1;
-    document.getElementById('bus-tsuji-2').textContent = t2;
+    AppUtil.setText('bus-shonan-1', s1);
+    AppUtil.setText('bus-shonan-2', s2);
+    AppUtil.setText('bus-tsuji-1', t1);
+    AppUtil.setText('bus-tsuji-2', t2);
   }catch(e){
-    document.getElementById('bus-shonan-1').textContent = '--';
-    document.getElementById('bus-shonan-2').textContent = '--';
-    document.getElementById('bus-tsuji-1').textContent = '--';
-    document.getElementById('bus-tsuji-2').textContent = '--';
+    AppUtil.setText('bus-shonan-1', '--');
+    AppUtil.setText('bus-shonan-2', '--');
+    AppUtil.setText('bus-tsuji-1', '--');
+    AppUtil.setText('bus-tsuji-2', '--');
   }
 }
 
 async function loadCongestion(){
   try{
-    const data = await fetchJSON('https://digital-twin-bus-server.vercel.app/congestion');
+    const data = await AppUtil.fetchAPI('/congestion', AppUtil.BASE.api);
     const badge = document.getElementById('crowd');
     const lv = String(data.level||'').toLowerCase();
     const jp = { low: '混雑なし', mid: 'やや混雑', high: '混雑' };
@@ -57,26 +51,44 @@ async function loadCongestion(){
     badge.classList.remove('low','mid','high');
     if(lv==='low'||lv==='mid'||lv==='high') badge.classList.add(lv);
   }catch(e){
-    document.getElementById('crowd').textContent = '--';
+    AppUtil.setText('crowd', '--');
   }
 }
 
 async function loadBike(){
+  async function getData(){ return AppUtil.fetchAPI('/bike-direction', AppUtil.BASE.api); }
   try{
-    const data = await fetchJSON('https://digital-twin-bus-server.vercel.app/bike');
-    document.getElementById('bike-avail').textContent = data.total_available ?? '--';
-    document.getElementById('bike-return').textContent = data.total_returnable ?? '--';
-    const el = document.getElementById('bike-return-secondary');
-    if(el){
-      if(typeof data.returnable_secondary === 'number'){
-        el.textContent = `+${data.returnable_secondary}(駅遠)`;
-      }else{
-        el.textContent = '+--(駅遠)';
-      }
+    const data = await getData();
+    const dir = AppUtil.direction();
+    const leftLabel = document.getElementById('bike-left-label');
+    const rightLabel = document.getElementById('bike-right-label');
+    const leftUnit = document.getElementById('bike-left-unit');
+    const rightUnit = document.getElementById('bike-right-unit');
+    const rightSmall = document.getElementById('bike-return-secondary');
+    if(dir === 'go'){
+      if(leftLabel) leftLabel.textContent = 'SFC前 返却';
+      if(rightLabel) rightLabel.textContent = '湘南台駅前 貸出';
+      if(leftUnit) leftUnit.textContent = '台空';
+      if(rightUnit) rightUnit.textContent = '台有';
+      AppUtil.setText('bike-avail', data?.go?.sfc_returnable);
+      const pri = data?.go?.shonandai_rentable?.primary;
+      const sec = data?.go?.shonandai_rentable?.secondary;
+      AppUtil.setText('bike-return', (typeof pri === 'number') ? pri : '--');
+      rightSmall.textContent = (typeof sec === 'number') ? `+${sec}(駅遠)` : '+--(駅遠)';
+    }else{
+      if(leftLabel) leftLabel.textContent = 'SFC前 貸出';
+      if(rightLabel) rightLabel.textContent = '湘南台駅前 返却';
+      if(leftUnit) leftUnit.textContent = '台有';
+      if(rightUnit) rightUnit.textContent = '台空';
+      AppUtil.setText('bike-avail', data?.back?.sfc_rentable);
+      const pri = data?.back?.shonandai_returnable?.primary;
+      const sec = data?.back?.shonandai_returnable?.secondary;
+      AppUtil.setText('bike-return', (typeof pri === 'number') ? pri : '--');
+      rightSmall.textContent = (typeof sec === 'number') ? `+${sec}(駅遠)` : '+--(駅遠)';
     }
   }catch(e){
-    document.getElementById('bike-avail').textContent = '--';
-    document.getElementById('bike-return').textContent = '--';
+    AppUtil.setText('bike-avail', '--');
+    AppUtil.setText('bike-return', '--');
     const el = document.getElementById('bike-return-secondary');
     if(el) el.textContent = '+--(駅遠)';
   }
@@ -84,8 +96,8 @@ async function loadBike(){
 
 async function loadRideshare(){
   try{
-    const data = await fetchJSON('https://digital-twin-bus-server.vercel.app/rideshare');
-    const dir = (window.DirectionToggle ? window.DirectionToggle.getDirection() : 'go');
+    const data = await AppUtil.fetchAPI('/rideshare', AppUtil.BASE.rideshare);
+    const dir = AppUtil.direction();
     let aLabel = '湘南台', bLabel = '辻堂';
     let a = null, b = null;
     if(dir === 'go'){
@@ -99,20 +111,20 @@ async function loadRideshare(){
       aLabel = '湘南台まで';
       bLabel = '辻堂まで';
     }
-    document.getElementById('rs-col1-label').textContent = aLabel;
-    document.getElementById('rs-col2-label').textContent = bLabel;
-    document.getElementById('rs-col1-veh').textContent = (a.vehicles ?? '--');
-    document.getElementById('rs-col1-min').textContent = (a.untilEarliestMin ?? '--');
-    document.getElementById('rs-col2-veh').textContent = (b.vehicles ?? '--');
-    document.getElementById('rs-col2-min').textContent = (b.untilEarliestMin ?? '--');
+    AppUtil.setText('rs-col1-label', aLabel);
+    AppUtil.setText('rs-col2-label', bLabel);
+    AppUtil.setText('rs-col1-veh', a.vehicles);
+    AppUtil.setText('rs-col1-min', a.untilEarliestMin);
+    AppUtil.setText('rs-col2-veh', b.vehicles);
+    AppUtil.setText('rs-col2-min', b.untilEarliestMin);
   }catch(e){
-    const dir = (window.DirectionToggle ? window.DirectionToggle.getDirection() : 'go');
-    document.getElementById('rs-col1-label').textContent = (dir === 'go' ? '湘南台から' : '湘南台まで');
-    document.getElementById('rs-col2-label').textContent = (dir === 'go' ? '辻堂から' : '辻堂まで');
-    document.getElementById('rs-col1-veh').textContent = '--';
-    document.getElementById('rs-col1-min').textContent = '--';
-    document.getElementById('rs-col2-veh').textContent = '--';
-    document.getElementById('rs-col2-min').textContent = '--';
+    const dir = AppUtil.direction();
+    AppUtil.setText('rs-col1-label', (dir === 'go' ? '湘南台から' : '湘南台まで'));
+    AppUtil.setText('rs-col2-label', (dir === 'go' ? '辻堂から' : '辻堂まで'));
+    AppUtil.setText('rs-col1-veh', '--');
+    AppUtil.setText('rs-col1-min', '--');
+    AppUtil.setText('rs-col2-veh', '--');
+    AppUtil.setText('rs-col2-min', '--');
   }
 }
 

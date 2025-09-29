@@ -1,11 +1,5 @@
 function pad(n){return String(n).padStart(2,'0')}
 
-async function fetchJSON(path){
-  const res = await fetch(path, {cache:'no-store'});
-  if(!res.ok) throw new Error(`${path} ${res.status}`);
-  return res.json();
-}
-
 function dayTypeLabel(dt){
   return dt === 'weekday' ? '平日' : dt === 'saturday' ? '土曜' : '休日';
 }
@@ -120,7 +114,7 @@ async function main(){
     }
   });
   try{
-    const data = await fetchJSON('https://digital-twin-bus-server.vercel.app/timetable');
+    const data = await AppUtil.fetchAPI('/timetable', AppUtil.BASE.api);
     _timetableAll = data.timetable || {};
     _dayType = data.dayTypeToday || 'weekday';
     document.getElementById('daytype').textContent = `（${dayTypeLabel(_dayType)}）`;

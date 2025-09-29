@@ -69,18 +69,18 @@
         </header>
         <div class="times">
           <div class="side">
-            <div class="label-over">SFC前 貸出</div>
+            <div class="label-over" id="bike-left-label">SFC前 貸出</div>
             <div class="big" id="bike-avail">--</div>
-            <div class="unit">台有</div>
+            <div class="unit" id="bike-left-unit">台有</div>
           </div>
           <div class="divider"></div>
           <div class="side">
-            <div class="label-over">湘南台駅前 返却</div>
+            <div class="label-over" id="bike-right-label">湘南台駅前 返却</div>
             <div class="big-wrap">
               <div class="big" id="bike-return">--</div>
               <div class="small-note" id="bike-return-secondary">+--(駅遠)</div>
             </div>
-            <div class="unit">台空</div>
+            <div class="unit" id="bike-right-unit">台空</div>
           </div>
         </div>
       </section>
@@ -126,6 +126,7 @@
     </main>
 
     <script src="./shared/toggle.js"></script>
+    <script src="./shared/utils.js"></script>
     <script src="./script.js"></script>
   </body>
   </html>
