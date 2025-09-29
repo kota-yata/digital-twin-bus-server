@@ -330,20 +330,9 @@ def shape_item(now: datetime, item: dict, tz_name: str = "Asia/Tokyo") -> dict:
 HELLO_INFO_URL = "https://api-public.odpt.org/api/v4/gbfs/hellocycling/station_information.json"
 HELLO_STATUS_URL = "https://api-public.odpt.org/api/v4/gbfs/hellocycling/station_status.json"
 
-SFC = (35.3881, 139.4270)
-SHONANDAI = (35.3949, 139.4653)
-
-
-def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    R = 6371000.0
-    phi1 = math.radians(lat1)
-    phi2 = math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlambda = math.radians(lon2 - lon1)
-    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return R * c
-
+SFC_STATION_ID = "5143"
+SHONANDAI_TIER1_STATION_IDS = ["5609", "7395", "11403", "16084"]
+SHONANDAI_TIER2_STATION_IDS = ["12189", "5113", "12189", "4035", "11908"]
 
 def compute_bike_metrics() -> dict:
     info = requests.get(HELLO_INFO_URL, timeout=10).json()
@@ -352,47 +341,60 @@ def compute_bike_metrics() -> dict:
     stations = info.get("data", {}).get("stations", [])
     statuses = status.get("data", {}).get("stations", [])
     status_by_id = {s.get("station_id"): s for s in statuses}
+    info_by_id = {s.get("station_id"): s for s in stations}
 
-    merged = []
-    for st in stations:
-        sid = st.get("station_id")
-        if not sid or sid not in status_by_id:
-            continue
-        lat = st.get("lat")
-        lon = st.get("lon")
-        if lat is None or lon is None:
-            continue
-        st_status = status_by_id[sid]
-        nba = st_status.get("num_bikes_available", 0) or 0
+    # Env vars
+    # Primary names expected by user
+    sfc_station_id = (os.getenv("SFC_STATION_ID") or "").strip()
+    shonandai_primary_env = (os.getenv("SHONANDAI_PRIMARY_STATION_IDS") or "").strip()
+    shonandai_secondary_env = (os.getenv("SHONANDAI_SECONDARY_STATION_IDS") or "").strip()
+    # Backward/alternate names for compatibility
+    if not sfc_station_id:
+        sfc_station_id = (os.getenv("HELLO_SFC_STATION_ID") or "").strip()
+    if not shonandai_primary_env:
+        shonandai_primary_env = (os.getenv("SHONANDAI_STATION_IDS_PRIMARY") or os.getenv("HELLO_SHONANDAI_STATION_IDS") or "").strip()
+    if not shonandai_secondary_env:
+        shonandai_secondary_env = (os.getenv("SHONANDAI_STATION_IDS_SECONDARY") or "").strip()
+
+    def parse_ids(raw: str) -> list[str]:
+        return [sid.strip() for sid in raw.split(",") if sid.strip()]
+
+    def returnable_for(sid: str) -> int:
+        st_status = status_by_id.get(sid) or {}
+        if not st_status:
+            return 0
         if "num_docks_available" in st_status:
-            returnable = st_status.get("num_docks_available", 0) or 0
-        else:
-            cap = st.get("capacity", 0) or 0
-            returnable = max(0, cap - nba)
-        merged.append({
-            "name": st.get("name"),
-            "lat": lat,
-            "lon": lon,
-            "num_bikes_available": int(nba),
-            "returnable": int(returnable),
-        })
+            return int(st_status.get("num_docks_available", 0) or 0)
+        cap = (info_by_id.get(sid) or {}).get("capacity", 0) or 0
+        nba = int(st_status.get("num_bikes_available", 0) or 0)
+        return max(0, int(cap) - int(nba))
 
-    nearest_sfc = min(
-        merged,
-        key=lambda r: _haversine_m(SFC[0], SFC[1], r["lat"], r["lon"]) if r else float("inf"),
-    ) if merged else None
+    # total_available: bikes at fixed SFC station id
+    if sfc_station_id and sfc_station_id in status_by_id:
+        total_available = int((status_by_id.get(sfc_station_id) or {}).get("num_bikes_available", 0) or 0)
+    else:
+        # If not provided, we cannot determine nearest without scanning; return 0
+        total_available = 0
 
-    total_available = int(nearest_sfc.get("num_bikes_available", 0)) if nearest_sfc else 0
+    # total_returnable: use prioritized Shonandai lists if provided
+    primary_ids = parse_ids(shonandai_primary_env) if shonandai_primary_env else []
+    secondary_ids = parse_ids(shonandai_secondary_env) if shonandai_secondary_env else []
 
-    total_returnable = 0
-    for r in merged:
-        d = _haversine_m(SHONANDAI[0], SHONANDAI[1], r["lat"], r["lon"]) 
-        if d < 500:
-            total_returnable += int(r.get("returnable", 0))
+    total_returnable_primary = sum(returnable_for(sid) for sid in primary_ids)
+    total_returnable_secondary = sum(returnable_for(sid) for sid in secondary_ids)
+
+    if primary_ids:
+        # Use primary sum; if zero and secondary provided, fallback to secondary
+        total_returnable = total_returnable_primary if (total_returnable_primary > 0 or not secondary_ids) else total_returnable_secondary
+    elif secondary_ids:
+        total_returnable = total_returnable_secondary
+    else:
+        # No lists provided; cannot search all stations per new requirement
+        total_returnable = 0
 
     return {
-        "total_available": total_available,
-        "total_returnable": total_returnable,
+        "total_available": int(total_available),
+        "total_returnable": int(total_returnable),
     }
 
 

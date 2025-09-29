@@ -120,6 +120,16 @@ python server.py
 
 Optional environment variables:
 - `TZ` — timezone name (IANA/Olson), default `Asia/Tokyo`.
+- `SFC_STATION_ID` — HELLO CYCLING `station_id` for the SFC campus. Used directly for `total_available`.
+- `SHONANDAI_PRIMARY_STATION_IDS` — comma-separated HELLO CYCLING `station_id`s near Shonandai (higher priority group).
+- `SHONANDAI_SECONDARY_STATION_IDS` — comma-separated HELLO CYCLING `station_id`s near Shonandai (fallback group).
+
+Behavior
+- `total_available` reads bikes from `SFC_STATION_ID`. If unset or unknown, it returns 0.
+- `total_returnable` sums docks from `SHONANDAI_PRIMARY_STATION_IDS`. If that sum is 0 and secondary IDs are provided, it falls back to the secondary sum. If neither list is set, it returns 0.
+
+Compatibility
+- Also supported: `HELLO_SFC_STATION_ID`, `SHONANDAI_STATION_IDS_PRIMARY`, `SHONANDAI_STATION_IDS_SECONDARY`, and `HELLO_SHONANDAI_STATION_IDS`.
 
 Example requests:
 
